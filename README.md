@@ -11,7 +11,25 @@ python eval.py
 python -m pytest tests -q
 ```
 
-`demo.py` gives you a guided terminal walkthrough of four scripted scenarios and prints the tool results; it needs no API key. `eval.py` runs the same kind of deterministic checks. These use a fake LangChain chat model, not live model inference. To run a live text session, set `OPENAI_API_KEY` and optionally `OPENAI_MODEL`, then run `python agent.py`.
+`demo.py` gives you a guided terminal walkthrough of four scripted scenarios and prints the tool results; it needs no API key. `eval.py` runs deterministic checks with a fake LangChain model, not live model inference.
+
+To run a live Gemini text session in PowerShell, enter a **new, replacement key** when prompted. Do not reuse the key previously pasted into chat; revoke that key first.
+
+```powershell
+$env:LLM_PROVIDER = "google"
+$secureKey = Read-Host "New Gemini API key" -AsSecureString
+$keyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
+try {
+	$env:GOOGLE_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($keyPointer)
+	python agent.py
+} finally {
+	Remove-Item Env:GOOGLE_API_KEY -ErrorAction SilentlyContinue
+	Remove-Item Env:LLM_PROVIDER -ErrorAction SilentlyContinue
+	[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($keyPointer)
+}
+```
+
+The default model is `gemini-2.5-flash`; override it with `GEMINI_MODEL` if needed. To use OpenAI instead, set `LLM_PROVIDER=openai` and `OPENAI_API_KEY`. Keep keys in environment variables or a secret manager; never commit them. Live calls can incur provider charges.
 
 An OpenAI key enables live model calls; it does **not** make this mock-backed demo production-ready. The in-memory accounts are test data, and live model behavior is not guaranteed.
 
@@ -38,7 +56,7 @@ An OpenAI key enables live model calls; it does **not** make this mock-backed de
 - Add authentication, authorization, identity-attempt throttling, retention/deletion policy, privacy review for sending utterances to a model provider, secret-manager-backed API keys, rate limits, monitoring, and incident procedures.
 - The safety phrase detector is a deterministic starter list, not a complete Hindi/Hinglish classifier. A production system needs a broader evaluated classifier, human review paths, and regular adversarial testing.
 - The in-memory checkpoint and accounts disappear when the process exits. Production needs encrypted, access-controlled persistence, retention limits, and audit logging.
-- The live OpenAI model may fail to call the right tool or follow style guidance. Tool checks still reject invalid actions; production should add model/version pinning, rate limits, timeouts, fallback behavior, and monitored evaluations.
+- A live Gemini or OpenAI model may fail to call the right tool or follow style guidance. Tool checks still reject invalid actions; production should add model/version pinning, rate limits, timeouts, fallback behavior, and monitored evaluations.
 - The mock account IDs and DOBs are test data only. Never use this storage pattern or mock identity fields with real borrower information.
 
 Part A is labeled no-AI in the brief and is intentionally left for independent completion.
