@@ -1,0 +1,7 @@
+vpc_id             = "vpc-0123456789abcdef0"
+public_subnet_ids  = ["subnet-0123456789abcdef0", "subnet-0abcdef0123456789"]
+private_subnet_ids = ["subnet-11111111111111111", "subnet-22222222222222222"]
+certificate_arn    = "arn:aws:acm:ap-south-1:123456789012:certificate/replace-me"
+crm_url            = "https://crm.example.in/api/retry-schedule"
+crm_secret_arn     = "arn:aws:secretsmanager:ap-south-1:123456789012:secret:crm-bearer-token"
+github_repository  = "YOUR_ORG/YOUR_REPOSITORY"

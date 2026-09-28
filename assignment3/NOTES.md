@@ -1,0 +1,13 @@
+# Assignment 3 Notes
+
+- Part A is labeled no-AI in the brief and is intentionally left for the candidate to complete independently.
+- The Part B API requires a stable `event_id`, an account ID, a disposition, an attempt index (0 to 3), and a timezone-aware `completed_at` timestamp. Attempt index 0 schedules retry 1; index 3 means the retry limit is reached.
+- DynamoDB stores webhook events conditionally by event ID. SQS FIFO buffers retry scheduling so CRM downtime does not hold up webhook requests. The worker lets SQS retry failed CRM requests and sends poison messages to a dead-letter queue.
+- Call windows are 08:00 inclusive to 19:00 exclusive in Asia/Kolkata. Results are returned in UTC; scheduling uses the event timestamp rather than the API host clock.
+- Terraform expects an existing VPC, at least two public subnets, private subnets with NAT egress or suitable VPC endpoints, an ACM certificate in ap-south-1, and a pre-created Secrets Manager secret containing only the CRM bearer token.
+- Bootstrap deployment in two stages: first create the ECR repository (`terraform apply -target=aws_ecr_repository.app`), build and push the initial image tagged `latest`, then apply the full Terraform configuration so ECS can start its first task. Later image updates use the GitHub Actions workflow.
+- The GitHub Actions deploy role is restricted to the configured repository's `main` branch. Configure repository variables for AWS region, deployment role ARN, ECR repository name, ECS cluster, and ECS API service.
+- A temporary interview demo is deployed in `ap-south-1` using `terraform.demo.tfvars`: HTTP only, public subnets, one API task, and no CRM worker, secret, or GitHub OIDC role. It contains no real borrower data. The endpoint is `http://predixion-call-webhook-alb-1031799190.ap-south-1.elb.amazonaws.com/health`.
+- This public HTTP mode is intentionally not production-safe and incurs AWS charges while running. Tear it down after the interview with `terraform destroy -var-file=terraform.demo.tfvars`; the dedicated ECR repository is configured to delete its demo image during teardown.
+- For another day: use a transactional outbox/stream to guarantee event persistence and queue publication as one logical operation; add CRM contract tests, alarms, WAF/rate limits, and retention policies; add Terraform integration tests.
+- Validation evidence: six service tests passed; `terraform fmt -check` and `terraform validate` passed; the Docker image built and its local `/health` smoke test returned `ok`; the deployed ALB health endpoint returned `ok`, with one ECS task running and the ALB target healthy.

@@ -1,15 +1,72 @@
-# Assignment 4 - Collections Assistant
+# Predixion AI Assignments
 
-## Run
+The workspace contains Assignments 1 through 4. From the repository root, run each Part B as follows.
 
-From this directory:
+## Assignment 1 - Collections Ledger
+
+```powershell
+cd assignment1
+python -m pip install -r requirements.txt
+python -m pytest -q
+```
+
+Part B source is in `assignment1/ledger/`.
+
+## Assignment 2 - Dialer Campaign Analytics
+
+```powershell
+cd assignment2
+python -m pip install -r requirements.txt
+python -m pytest -q
+```
+
+Open `assignment2/analysis.ipynb` in VS Code and choose **Run All**. It generates the seeded CSVs and writes the chart and Collections Head memo under `assignment2/outputs/`.
+
+## Assignment 3 - Fix and Ship
+
+```powershell
+cd assignment3
+python -m pip install -r requirements.txt
+python -m pytest tests -q
+```
+
+The temporary interview demo is deployed in `ap-south-1` at [the health endpoint](http://predixion-call-webhook-alb-1031799190.ap-south-1.elb.amazonaws.com/health). It is HTTP-only on public subnets and is not safe for real borrower data. It uses one ECS task and no CRM worker. Tear it down after the interview from `assignment3/terraform` with:
+
+```powershell
+$env:LOCALAPPDATA\Programs\Terraform\terraform.exe destroy -var-file=terraform.demo.tfvars
+```
+
+The default Terraform configuration remains available for the secure HTTPS/private-subnet deployment when ACM, private subnet, CRM secret, and repository inputs are provided. The OIDC workflow is at `.github/workflows/deploy-assignment3.yml`. Part A is labeled no-AI and remains for independent completion.
+
+### Assignment 3 Architecture
+
+The diagram shows the intended secure deployment. The temporary interview demo differs: it uses HTTP and public subnets, runs only the API task, and has no CRM worker.
+
+```mermaid
+flowchart LR
+	Voice[Voice platform] --> WAF[AWS WAF]
+	WAF --> ALB[HTTPS Application Load Balancer]
+	ALB --> API[ECS Fargate API in private subnets]
+	API --> DB[(DynamoDB event store)]
+	API --> Queue[SQS FIFO retry queue]
+	Queue --> Worker[ECS Fargate CRM worker]
+	Worker --> CRM[CRM over HTTPS]
+	Secrets[AWS Secrets Manager] --> Worker
+	ECR[Amazon ECR] -. image .-> API
+	ECR -. image .-> Worker
+	API --> Logs[CloudWatch Logs and metrics]
+	Worker --> Logs
+```
+
+## Assignment 4 - Collections Assistant
 
 ```powershell
 python -m pip install -r requirements.txt
-python demo.py
 python eval.py
 python -m pytest tests -q
 ```
+
+The Assignment 4 files are at the GitHub repository root; in this workspace they are under `assignment4/`.
 
 `demo.py` gives you a guided terminal walkthrough of four scripted scenarios and prints the tool results; it needs no API key. `eval.py` runs deterministic checks with a fake LangChain model, not live model inference.
 

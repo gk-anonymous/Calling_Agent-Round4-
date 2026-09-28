@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+
+# Local Terraform data and credentials
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/*.tfvars
+
+# Local databases and logs
+*.db
+*.sqlite
+*.log
