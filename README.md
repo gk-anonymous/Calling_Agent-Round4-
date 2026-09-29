@@ -116,4 +116,3 @@ An OpenAI key enables live model calls; it does **not** make this mock-backed de
 - A live Gemini or OpenAI model may fail to call the right tool or follow style guidance. Tool checks still reject invalid actions; production should add model/version pinning, rate limits, timeouts, fallback behavior, and monitored evaluations.
 - The mock account IDs and DOBs are test data only. Never use this storage pattern or mock identity fields with real borrower information.
 
-Part A is labeled no-AI in the brief and is intentionally left for independent completion.
